@@ -1,9 +1,8 @@
+import asyncio
 import os
 import requests
 import time
-
 import logging
-
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
 from aiogram.enums.parse_mode import ParseMode
@@ -11,6 +10,9 @@ from aiogram.types.inline_keyboard_button import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
+logging.basicConfig(level=logging.INFO)
+bot = Bot(os.getenv("TOKEN"))
+dp = Dispatcher()
 proxies = {
             'http': f'http://{os.getenv('PROXY')}',
            }
@@ -56,13 +58,35 @@ def format_items(response):
     return products
 
 
-def main():
+@dp.message(CommandStart)
+async def start(message: types.Message):
     response = get_category()
     products = format_items(response)
-    print(products)
+
+    items = 0
+
+    for product in products:
+        text = f"<b>Категория</b>: Гарнитуры и наушники\n\n<b>Название</b>: {product['name']}\n<b>Бренд</b>: {product['brand']}\n\n<b>Отзывов всего</b>: {product['feedbacks']}\n<b>Средняя оценка</b>: {product['reviewRating']}"
+
+        builder = InlineKeyboardBuilder()
+        builder.add(
+            InlineKeyboardButton(text="Открыть", url=f"https://www.wildberries.ru/catalog/{product['id']}/detail.aspx"))
+
+        await message.answer(text, parse_mode=ParseMode.HTML, reply_markup=builder.as_markup())
+
+        if items >= 10:
+            break
+        items += 1
+
+        time.sleep(0.3)
+
+
+async def main():
+    await bot.delete_webhook(drop_pending_updates=True)
+    await dp.start_polling(bot)
 
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
 
 
