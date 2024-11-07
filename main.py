@@ -1,5 +1,14 @@
 import os
 import requests
+import time
+
+import logging
+
+from aiogram import Bot, Dispatcher, types
+from aiogram.filters import CommandStart
+from aiogram.enums.parse_mode import ParseMode
+from aiogram.types.inline_keyboard_button import InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
 proxies = {
